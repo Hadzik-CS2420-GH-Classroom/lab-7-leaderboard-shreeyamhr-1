@@ -19,7 +19,7 @@
 //
 BinarySearchTree::BinarySearchTree()
 {
-    // Your code here
+    root_ = nullptr;
 }
 
 // ---------------------------------------------------------------------------
@@ -32,7 +32,7 @@ BinarySearchTree::BinarySearchTree()
 //
 BinarySearchTree::~BinarySearchTree()
 {
-    // Your code here
+    clear();
 }
 
 // =============================================================================
@@ -51,7 +51,7 @@ BinarySearchTree::~BinarySearchTree()
 //
 void BinarySearchTree::insert(int value)
 {
-    // Your code here
+    root_ = insert_(root_, value);
 }
 
 // ---------------------------------------------------------------------------
@@ -69,9 +69,21 @@ void BinarySearchTree::insert(int value)
 //
 BinarySearchTree::Node* BinarySearchTree::insert_(Node* node, int value)
 {
-    // Your code here
+    if (node == nullptr)
+    {
+        return new Node(value);
+    }
 
-    return node; // placeholder — replace this with your implementation
+    if (value < node->data)
+    {
+        node->left = insert_(node->left, value);
+    }
+    else if (value > node->data)
+    {
+        node->right = insert_(node->right, value);
+    }
+
+    return node;
 }
 
 // ---------------------------------------------------------------------------
@@ -87,9 +99,9 @@ BinarySearchTree::Node* BinarySearchTree::insert_(Node* node, int value)
 //
 bool BinarySearchTree::remove(int value)
 {
-    // Your code here
-
-    return false; // placeholder
+    bool removed = false;
+    root_ = remove_(root_, value, removed);
+    return removed;
 }
 
 // ---------------------------------------------------------------------------
@@ -118,11 +130,55 @@ bool BinarySearchTree::remove(int value)
 // Always return node at the end so parent links stay intact.
 //
 BinarySearchTree::Node* BinarySearchTree::remove_(Node* node, int value,
-                                                   bool& removed)
+    bool& removed)
 {
-    // Your code here
+    if (node == nullptr)
+    {
+        return nullptr;
+    }
 
-    return node; // placeholder — replace this with your implementation
+    if (value < node->data)
+    {
+        node->left = remove_(node->left, value, removed);
+    }
+    else if (value > node->data)
+    {
+        node->right = remove_(node->right, value, removed);
+    }
+    else
+    {
+        removed = true;
+
+        // Case 1 — No children (leaf)
+        if (node->left == nullptr && node->right == nullptr)
+        {
+            delete node;
+            return nullptr;
+        }
+
+        // Case 2 — One child
+        if (node->left == nullptr)
+        {
+            Node* temp = node->right;
+            delete node;
+            return temp;
+        }
+        else if (node->right == nullptr)
+        {
+            Node* temp = node->left;
+            delete node;
+            return temp;
+        }
+
+        // Case 3 — Two children
+        Node* successor = find_min_(node->right);
+        node->data = successor->data;
+
+        bool dummy_removed = false;
+        node->right = remove_(node->right, successor->data, dummy_removed);
+    }
+
+    return node;
 }
 
 // ---------------------------------------------------------------------------
@@ -137,9 +193,12 @@ BinarySearchTree::Node* BinarySearchTree::remove_(Node* node, int value,
 //
 BinarySearchTree::Node* BinarySearchTree::find_min_(Node* node) const
 {
-    // Your code here
+    while (node->left != nullptr)
+    {
+        node = node->left;
+    }
 
-    return node; // placeholder — replace this with your implementation
+    return node;
 }
 
 // ---------------------------------------------------------------------------
@@ -153,7 +212,8 @@ BinarySearchTree::Node* BinarySearchTree::find_min_(Node* node) const
 //
 void BinarySearchTree::clear()
 {
-    // Your code here
+    clear_(root_);
+    root_ = nullptr;
 }
 
 // ---------------------------------------------------------------------------
@@ -168,7 +228,14 @@ void BinarySearchTree::clear()
 //
 void BinarySearchTree::clear_(Node* node)
 {
-    // Your code here
+    if (node == nullptr)
+    {
+        return;
+    }
+
+    clear_(node->left);
+    clear_(node->right);
+    delete node;
 }
 
 // =============================================================================
@@ -185,9 +252,7 @@ void BinarySearchTree::clear_(Node* node)
 //
 bool BinarySearchTree::search(int value) const
 {
-    // Your code here
-
-    return false; // placeholder
+    return search_(root_, value);
 }
 
 // ---------------------------------------------------------------------------
@@ -203,9 +268,22 @@ bool BinarySearchTree::search(int value) const
 //
 bool BinarySearchTree::search_(Node* node, int value) const
 {
-    // Your code here
+    if (node == nullptr)
+    {
+        return false;
+    }
 
-    return false; // placeholder
+    if (value == node->data)
+    {
+        return true;
+    }
+
+    if (value < node->data)
+    {
+        return search_(node->left, value);
+    }
+
+    return search_(node->right, value);
 }
 
 // ---------------------------------------------------------------------------
@@ -216,9 +294,7 @@ bool BinarySearchTree::search_(Node* node, int value) const
 //
 bool BinarySearchTree::is_empty() const
 {
-    // Your code here
-
-    return true; // placeholder
+    return root_ == nullptr;
 }
 
 // ---------------------------------------------------------------------------
@@ -236,9 +312,7 @@ bool BinarySearchTree::is_empty() const
 //
 int BinarySearchTree::height() const
 {
-    // Your code here
-
-    return -1; // placeholder
+    return height_(root_);
 }
 
 // ---------------------------------------------------------------------------
@@ -252,9 +326,12 @@ int BinarySearchTree::height() const
 //
 int BinarySearchTree::height_(Node* node) const
 {
-    // Your code here
+    if (node == nullptr)
+    {
+        return -1;
+    }
 
-    return -1; // placeholder
+    return 1 + std::max(height_(node->left), height_(node->right));
 }
 
 // ---------------------------------------------------------------------------
@@ -267,9 +344,7 @@ int BinarySearchTree::height_(Node* node) const
 //
 int BinarySearchTree::size() const
 {
-    // Your code here
-
-    return 0; // placeholder
+    return size_(root_);
 }
 
 // ---------------------------------------------------------------------------
@@ -283,9 +358,12 @@ int BinarySearchTree::size() const
 //
 int BinarySearchTree::size_(Node* node) const
 {
-    // Your code here
+    if (node == nullptr)
+    {
+        return 0;
+    }
 
-    return 0; // placeholder
+    return 1 + size_(node->left) + size_(node->right);
 }
 
 // ---------------------------------------------------------------------------
@@ -301,9 +379,7 @@ int BinarySearchTree::size_(Node* node) const
 //
 bool BinarySearchTree::is_balanced() const
 {
-    // Your code here
-
-    return true; // placeholder
+    return is_balanced_(root_);
 }
 
 // ---------------------------------------------------------------------------
@@ -320,9 +396,20 @@ bool BinarySearchTree::is_balanced() const
 //
 bool BinarySearchTree::is_balanced_(Node* node) const
 {
-    // Your code here
+    if (node == nullptr)
+    {
+        return true;
+    }
 
-    return true; // placeholder
+    int left_h = height_(node->left);
+    int right_h = height_(node->right);
+
+    if (std::abs(left_h - right_h) > 1)
+    {
+        return false;
+    }
+
+    return is_balanced_(node->left) && is_balanced_(node->right);
 }
 
 // =============================================================================
@@ -339,7 +426,8 @@ bool BinarySearchTree::is_balanced_(Node* node) const
 //
 void BinarySearchTree::inorder() const
 {
-    // Your code here
+    inorder_(root_);
+    std::cout << '\n';
 }
 
 // ---------------------------------------------------------------------------
@@ -352,7 +440,14 @@ void BinarySearchTree::inorder() const
 //
 void BinarySearchTree::inorder_(Node* node) const
 {
-    // Your code here
+    if (node == nullptr)
+    {
+        return;
+    }
+
+    inorder_(node->left);
+    std::cout << node->data << " ";
+    inorder_(node->right);
 }
 
 // ---------------------------------------------------------------------------
@@ -365,7 +460,8 @@ void BinarySearchTree::inorder_(Node* node) const
 //
 void BinarySearchTree::preorder() const
 {
-    // Your code here
+    preorder_(root_);
+    std::cout << '\n';
 }
 
 // ---------------------------------------------------------------------------
@@ -378,7 +474,14 @@ void BinarySearchTree::preorder() const
 //
 void BinarySearchTree::preorder_(Node* node) const
 {
-    // Your code here
+    if (node == nullptr)
+    {
+        return;
+    }
+
+    std::cout << node->data << " ";
+    preorder_(node->left);
+    preorder_(node->right);
 }
 
 // ---------------------------------------------------------------------------
@@ -391,7 +494,8 @@ void BinarySearchTree::preorder_(Node* node) const
 //
 void BinarySearchTree::postorder() const
 {
-    // Your code here
+    postorder_(root_);
+    std::cout << '\n';
 }
 
 // ---------------------------------------------------------------------------
@@ -404,5 +508,12 @@ void BinarySearchTree::postorder() const
 //
 void BinarySearchTree::postorder_(Node* node) const
 {
-    // Your code here
+    if (node == nullptr)
+    {
+        return;
+    }
+
+    postorder_(node->left);
+    postorder_(node->right);
+    std::cout << node->data << " ";
 }
